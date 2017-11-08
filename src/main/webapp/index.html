@@ -1,0 +1,176 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Take Room Pictures & Data on Demmand</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+			<meta name="author" content="">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<!-- Custom CSS -->
+	<link
+		href="https://cdnjs.cloudflare.com/ajax/libs/startbootstrap-sb-admin-2/3.3.7+1/css/sb-admin-2.css"
+		rel="stylesheet">
+
+		<link rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+			<script
+				src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+			<script
+				src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+			<script src="https://js.pusher.com/4.1/pusher.min.js"></script>
+</head>
+
+<body>
+	<div class="container-fluid">
+
+		<div class="row">
+			<div class="col-lg-12">
+				<h1 class="page-header">
+					Real time room
+				</h1>
+				<h4 id="date">Last sample taken at: </h4>
+			</div>
+			<br>
+			<div class="row">
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<div class="row">
+								<div class="col-xs-3">
+									<i class="fa fa-tachometer fa-5x"></i>
+								</div>
+								<div class="col-xs-9 text-right">
+									<div class="huge" id="temperatura">
+										<h2>--</h2>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="panel-footer">
+							<span class="pull-left"><h4>Temperatura</h4></span>
+							<div class="clearfix"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-green">
+						<div class="panel-heading">
+							<div class="row">
+								<div class="col-xs-3">
+									<i class="fa fa-tasks fa-5x"></i>
+								</div>
+								<div class="col-xs-9 text-right">
+									<div class="huge" id="humedad">
+										<h2>--</h2>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="panel-footer">
+							<span class="pull-left"><h4>Humedad</h4></span>
+							<div class="clearfix"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-yellow">
+						<div class="panel-heading">
+							<div class="row">
+								<div class="col-xs-3">
+									<i class="fa fa-lightbulb-o fa-5x"></i>
+								</div>
+								<div class="col-xs-9 text-right">
+									<div class="huge" id="light">
+										<h2>--</h2>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="panel-footer">
+							<span class="pull-left"><h4>Luz ambiental</h4></span>
+							<div class="clearfix"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.row -->
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="jumbotron">
+							<img id="photo" class="img-responsive" src="img/NoPict.png"
+								alt="Glupsss!!!">
+					</div>
+
+					<button type="button" class="btn btn-success btn-lg btn-block"
+						id="boton">
+						<h3>Get a new sample</h3>
+					</button>
+				</div>
+			</div>
+    <!-- Footer -->
+    <br>
+    <footer class="text-center">
+        <div class="footer-below">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 lead">
+                        Copyright &copy; Carlos L. Lopez 2017
+                    </div>
+                    <div class="col-lg-6 lead">
+                        <a href="https://github.com/cluis-lopez/WatchDog" class="btn-social btn-outline">Get the code on Github<br><i class="fa fa-3x fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+			</div>
+		</div>
+	</div>
+	<!-- /container -->
+
+	<script type="text/javascript">
+		Pusher.logToConsole = true;
+		var pusher = new Pusher('2ffdf405c4858a8972c4', {
+			cluster : 'eu',
+			encrypted : true,
+			authEndpoint : '/Auth'
+		});
+		var channel = pusher.subscribe('datos');
+		var privatechannel = pusher.subscribe('private-request');
+
+		channel.bind('my-event', function(data) {
+			$("#date").text("Last sample taken at: " + data.TimeStamp);
+			$("#temperatura").html(
+					"<h2>" + parseFloat(data.Temp).toFixed(2) + " ºC</h2>");
+			$("#humedad").html(
+					"<h2>" + parseFloat(data.Hum).toFixed(2) + " %</h2>");
+			$("#light").html("<h2>" + data.Light + "</h2>");
+			$("#photo").attr("src", "http://" + data.Pict);
+			$("#boton").prop('disabled', false);
+			$("#boton").html('<h3>Get a new sample</h3>');
+		});
+
+		$("#boton").click(function() {
+							$("#boton").prop('disabled', true);
+							$("#boton").html('<span id="blink"><h3>Getting ...</h3></span>');
+							if (privatechannel.subscribed == true) {
+								privatechannel.trigger('client-feedme', {'message' : 'SENDME'});
+							};
+						});
+
+		function blinker() {
+			$('#blink').fadeOut(500);
+			$('#blink').fadeIn(500);
+		};
+
+		setInterval(blinker, 1000); //Runs every second
+	</script>
+</body>
+</html>

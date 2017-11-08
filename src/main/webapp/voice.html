@@ -1,0 +1,140 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Take Room Pictures & Data on Demmand</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+	<script
+		src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<script src="https://js.pusher.com/4.1/pusher.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
+</head>
+
+<body>
+<div class="panel-group">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h2 class="panel-title">
+        <a data-toggle="collapse" href="#collapse1">¿No funciona?</a>
+      </h2>
+    </div>
+    <div id="collapse1" class="panel-collapse collapse">
+      <div class="panel-body"><a href="index.html">Utiliza la versi&oacute;n normal</a></div>
+      <div class="panel-footer"></div>
+    </div>
+  </div>
+</div>
+
+	<div class=container">
+			<img class="img-responsive  center-block" src="img/static_mic.gif" alt="MIC" id="mic">
+		</div>
+		<div class="row">
+		<div class="col-lg-2"></div>
+		<div class="col-lg-8">
+			<h2 class="text-center" id="mensaje">Pulsa el micro</h2>
+			<br>
+			<p class="text-center"><b>Comandos : </b>"datos", "foto"</p>
+		</div>
+		<div class="col-lg-2"></div>
+	</div>
+	<script>
+	
+		var datFunction = function (results){
+			console.log("Has dicho datos");
+			recording = false;
+			annyang.pause();
+			$("#mic").attr("src", "img/loading.gif");
+			if (privatechannel.subscribed == true) {
+				privatechannel.trigger('client-feedme', {'message' : 'SEND_Datos'});
+			};
+			//var msg = new SpeechSynthesisUtterance('Has dicho temperatura');
+			//msg.lang='es-ES';
+			//window.speechSynthesis.speak(msg);
+		};
+		
+		var fotoFunction = function (results){
+			console.log("Has dicho foto");
+			recording = false;
+			annyang.pause();
+			$("#mic").attr("src", "img/loading.gif");
+			if (privatechannel.subscribed == true) {
+				privatechannel.trigger('client-feedme', {'message' : 'SEND_Foto'});
+			};
+// 			var msg = new SpeechSynthesisUtterance('Has dicho humedad');
+// 			msg.lang='es-ES';
+// 			window.speechSynthesis.speak(msg);
+		};
+		
+		// Voice recognition initialization
+		var recording = false;
+		var commands = {'datos': datFunction, 'foto': fotoFunction};
+		annyang.addCommands(commands);
+		annyang.setLanguage("es-ES");
+		annyang.start({ autoRestart: false, continuous: false });
+		annyang.pause();
+		annyang.debug();
+
+		// Pusher initialization
+		Pusher.logToConsole = true;
+		var pusher = new Pusher('2ffdf405c4858a8972c4', {
+			cluster : 'eu',
+			encrypted : true,
+			authEndpoint : '/Auth'
+		});
+		var channel = pusher.subscribe('voicedata');
+		var privatechannel = pusher.subscribe('private-request');
+		
+		channel.bind('voicedata-event', function(data) {
+			$("#mic").attr("src", "img/speaker.png");
+			$("#mensaje").text("");
+			var msg = new SpeechSynthesisUtterance('La temperatura en casa de Carlos es de ' + parseFloat(data.Temp).toFixed(1) + 'grados centígrados, con una humedad del ' + parseFloat(data.Hum).toFixed(0) + ' por ciento');
+			msg.lang='es-ES';
+			msg.onend = function (event){
+				$("#mic").attr("src", "img/static_mic.gif");
+				$("#mensaje").text("Pulsa el micro");
+				recording = false;
+				};
+			window.speechSynthesis.speak(msg);
+		});
+		
+		channel.bind('voicefoto-event', function (data) {
+			$("#mic").attr( "src" , "http://" + data.Pict);
+			var msg = new SpeechSynthesisUtterance('Aqui tienes una foto de tu habitación ahora mismo');
+			msg.lang='es-ES';
+			window.speechSynthesis.speak(msg);
+			msg.onend = function (event){
+				recording = false;
+				$("#mensaje").text("Pulsa la foto para activar el micro");
+			};
+		});
+		
+		$("#mic").click(function(){
+			if (recording == false){
+				$(this).attr("src", "img/animated_mic.gif");
+				$("#mensaje").text("Pronuncia un comando");
+				recording = true;
+				annyang.resume();
+			}
+			else {
+					$(this).attr("src", "img/static_mic.gif");
+					$("#mensaje").text("Pulsa el micro");
+					annyang.pause();
+				}
+
+		});
+		
+	</script>
+</body>

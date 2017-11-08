@@ -5,3 +5,5 @@
 .pydevproject
 src/test
 src/main/webapp/WEB-INF/lib
+src/main/webapp/WEB-INF/appengine-web.xml
+Raspi\ Scripts/Properties.py

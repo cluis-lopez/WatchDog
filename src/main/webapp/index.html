@@ -144,6 +144,14 @@
 		});
 		var channel = pusher.subscribe('datos');
 		var privatechannel = pusher.subscribe('private-request');
+		var ipadd;
+		
+		// Get the current (external IP address to log)
+
+		$.getJSON('//api.ipify.org?format=jsonp&callback=?', function(data) {
+			console.log(JSON.stringify(data, null, 2));
+			ipadd = data.ip;
+		});
 
 		channel.bind('my-event', function(data) {
 			$("#date").text("Last sample taken at: " + data.TimeStamp);
@@ -158,12 +166,16 @@
 		});
 
 		$("#boton").click(function() {
-							$("#boton").prop('disabled', true);
-							$("#boton").html('<span id="blink"><h3>Getting ...</h3></span>');
-							if (privatechannel.subscribed == true) {
-								privatechannel.trigger('client-feedme', {'message' : 'SENDME'});
-							};
-						});
+			$("#boton").prop('disabled', true);
+			$("#boton").html('<span id="blink"><h3>Getting ...</h3></span>');
+			if (privatechannel.subscribed == true) {
+				privatechannel.trigger('client-feedme', {
+					'message' : 'SENDME',
+					'ipadd' : ipadd
+				});
+			}
+			;
+		});
 
 		function blinker() {
 			$('#blink').fadeOut(500);

@@ -58,7 +58,7 @@
 			annyang.pause();
 			$("#mic").attr("src", "img/loading.gif");
 			if (privatechannel.subscribed == true) {
-				privatechannel.trigger('client-feedme', {'message' : 'SEND_Datos'});
+				privatechannel.trigger('client-feedme', {'message' : 'SEND_Datos', 'ipadd' : ipadd});
 			};
 			//var msg = new SpeechSynthesisUtterance('Has dicho temperatura');
 			//msg.lang='es-ES';
@@ -71,7 +71,7 @@
 			annyang.pause();
 			$("#mic").attr("src", "img/loading.gif");
 			if (privatechannel.subscribed == true) {
-				privatechannel.trigger('client-feedme', {'message' : 'SEND_Foto'});
+				privatechannel.trigger('client-feedme', {'message' : 'SEND_Foto', 'ipadd' : ipadd});
 			};
 // 			var msg = new SpeechSynthesisUtterance('Has dicho humedad');
 // 			msg.lang='es-ES';
@@ -96,6 +96,14 @@
 		});
 		var channel = pusher.subscribe('voicedata');
 		var privatechannel = pusher.subscribe('private-request');
+		var ipadd;
+		
+		// Get the current (external) IP address to log
+
+		$.getJSON('//api.ipify.org?format=jsonp&callback=?', function(data) {
+			console.log(JSON.stringify(data, null, 2));
+			ipadd = data.ip;
+		});
 		
 		channel.bind('voicedata-event', function(data) {
 			$("#mic").attr("src", "img/speaker.png");

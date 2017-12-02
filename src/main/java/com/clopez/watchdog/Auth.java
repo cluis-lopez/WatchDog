@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.repackaged.com.google.common.io.CharStreams;
+import com.google.common.io.CharStreams;
 import com.pusher.rest.Pusher;
 
 
